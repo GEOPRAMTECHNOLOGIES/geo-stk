@@ -3,13 +3,23 @@
   "routes": [
     {
       "src": "/api/stk_push",
+      "dest": "/api/stk_push.js",
       "methods": ["POST", "OPTIONS"],
-      "dest": "/api/stk_push.js"
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization"
+      }
     },
     {
       "src": "/api/callback",
+      "dest": "/api/callback.js",
       "methods": ["POST", "OPTIONS"],
-      "dest": "/api/callback.js"
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization"
+      }
     },
     {
       "src": "/(.*)",

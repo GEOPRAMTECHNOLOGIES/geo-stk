@@ -1,136 +1,720 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geopram Checkout</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <style>
-        .spinner {
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top: 3px solid #fff;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Geopram Shop — Pay via M-Pesa</title>
+  <meta name="description" content="Secure M-Pesa checkout for Geopram Shop. Fast, safe, and mobile-friendly." />
+
+  <!-- Google Fonts: Space Grotesk (display) + Inter (body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── Tokens ──────────────────────────────────────────────── */
+    :root {
+      --green-dark:   #0a2e1a;
+      --green-mid:    #164d2e;
+      --green-accent: #1d6b3f;
+      --gold:         #d4a017;
+      --gold-light:   #f0c040;
+      --gold-glow:    rgba(212, 160, 23, 0.18);
+      --surface:      #ffffff;
+      --surface-dim:  #f5f7f5;
+      --border:       #dde5dd;
+      --text-primary: #0d1f12;
+      --text-secondary:#4a6452;
+      --text-muted:   #7a9480;
+      --red:          #c0392b;
+      --red-bg:       #fdf0ef;
+      --success:      #166534;
+      --success-bg:   #f0fdf4;
+      --radius-card:  20px;
+      --radius-input: 10px;
+      --radius-btn:   12px;
+      --shadow-card:  0 8px 40px rgba(10, 46, 26, 0.12), 0 1px 4px rgba(10,46,26,0.06);
+      --transition:   0.2s ease;
+    }
+
+    /* ── Reset ───────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: var(--green-dark);
+      background-image:
+        radial-gradient(ellipse 80% 60% at 50% -10%, rgba(29,107,63,0.45) 0%, transparent 70%),
+        url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23164d2e' fill-opacity='0.35'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      font-family: 'Inter', system-ui, sans-serif;
+      color: var(--text-primary);
+      padding: 24px 16px;
+    }
+
+    /* ── Layout ──────────────────────────────────────────────── */
+    .page-wrap {
+      width: 100%;
+      max-width: 420px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* ── Logo / Brand ────────────────────────────────────────── */
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .brand-mark {
+      width: 44px;
+      height: 44px;
+      background: var(--gold);
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+
+    .brand-mark svg { display: block; }
+
+    .brand-text {
+      line-height: 1;
+    }
+
+    .brand-text .name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-text .tagline {
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.5);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    /* ── Card ────────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+    }
+
+    .card-header {
+      background: linear-gradient(135deg, var(--green-mid), var(--green-accent));
+      padding: 24px 28px 20px;
+      position: relative;
+    }
+
+    .card-header::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0; right: 0;
+      height: 24px;
+      background: var(--surface);
+      border-radius: 20px 20px 0 0;
+    }
+
+    .card-header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--gold-glow);
+      border: 1px solid rgba(212, 160, 23, 0.35);
+      border-radius: 999px;
+      padding: 4px 10px;
+      margin-bottom: 14px;
+    }
+
+    .card-header-badge span {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--gold-light);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .dot-live {
+      width: 7px; height: 7px;
+      background: var(--gold-light);
+      border-radius: 50%;
+      animation: pulse 1.8s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.4; transform: scale(0.75); }
+    }
+
+    .card-header h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+
+    .card-header p {
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.65);
+      margin-top: 5px;
+    }
+
+    /* ── Form body ───────────────────────────────────────────── */
+    .card-body {
+      padding: 24px 28px 28px;
+    }
+
+    .field {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 7px;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
+      display: flex;
+    }
+
+    input[type="tel"],
+    input[type="number"] {
+      width: 100%;
+      height: 50px;
+      padding: 0 14px 0 42px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-input);
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+      color: var(--text-primary);
+      background: var(--surface-dim);
+      outline: none;
+      transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
+      -moz-appearance: textfield;
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    input:focus {
+      border-color: var(--green-accent);
+      background: var(--surface);
+      box-shadow: 0 0 0 3px rgba(29,107,63,0.12);
+    }
+
+    input.error {
+      border-color: var(--red);
+      background: var(--red-bg);
+    }
+
+    .field-hint {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 5px;
+    }
+
+    .field-err {
+      font-size: 0.72rem;
+      color: var(--red);
+      margin-top: 5px;
+      display: none;
+    }
+
+    /* ── Divider ─────────────────────────────────────────────── */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 4px 0 22px;
+      color: var(--text-muted);
+      font-size: 0.72rem;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── Pay Button ──────────────────────────────────────────── */
+    .btn-pay {
+      width: 100%;
+      height: 54px;
+      border: none;
+      border-radius: var(--radius-btn);
+      background: linear-gradient(135deg, var(--green-mid) 0%, var(--green-accent) 100%);
+      color: #ffffff;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: opacity var(--transition), transform var(--transition), box-shadow var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 4px 18px rgba(22,77,46,0.35);
+    }
+
+    .btn-pay:hover:not(:disabled) {
+      opacity: 0.93;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 24px rgba(22,77,46,0.4);
+    }
+
+    .btn-pay:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .btn-pay:disabled {
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+
+    .btn-pay .btn-icon { display: flex; }
+    .btn-pay .btn-spinner { display: none; }
+
+    .btn-pay.loading .btn-icon { display: none; }
+    .btn-pay.loading .btn-spinner { display: flex; }
+
+    /* Gold shimmer on button */
+    .btn-pay::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 60%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+      transform: skewX(-20deg);
+      transition: left 0.5s ease;
+    }
+
+    .btn-pay:hover:not(:disabled)::after { left: 160%; }
+
+    /* Spinner */
+    .spinner {
+      width: 20px; height: 20px;
+      border: 2.5px solid rgba(255,255,255,0.3);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Status Box ──────────────────────────────────────────── */
+    #status-box {
+      margin-top: 18px;
+      padding: 14px 16px;
+      border-radius: var(--radius-input);
+      font-size: 0.85rem;
+      font-weight: 500;
+      line-height: 1.5;
+      display: none;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    #status-box.show { display: flex; }
+
+    #status-box.success {
+      background: var(--success-bg);
+      color: var(--success);
+      border: 1px solid #bbf7d0;
+    }
+
+    #status-box.error {
+      background: var(--red-bg);
+      color: var(--red);
+      border: 1px solid #f5c6c2;
+    }
+
+    #status-box.info {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+    }
+
+    .status-icon { flex-shrink: 0; margin-top: 1px; }
+
+    /* ── Security strip ──────────────────────────────────────── */
+    .secure-strip {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 20px;
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.4);
+    }
+
+    .secure-strip svg { opacity: 0.5; }
+
+    /* ── Safaricom brand row ─────────────────────────────────── */
+    .mpesa-brand {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .mpesa-logo {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+      color: var(--green-accent);
+      font-size: 0.8rem;
+    }
+
+    .mpesa-logo .m { color: var(--red); }
+    .mpesa-logo .pesa { color: var(--green-accent); }
+
+    /* ── Responsive ──────────────────────────────────────────── */
+    @media (max-width: 440px) {
+      .card-header { padding: 20px 20px 16px; }
+      .card-body   { padding: 20px 20px 24px; }
+    }
+  </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center p-4 font-sans">
 
-    <div class="w-full max-w-md bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 p-8 space-y-6">
-        <div class="text-center">
-            <h1 class="text-3xl font-extrabold tracking-tight text-emerald-400">Geopram Shop</h1>
-            <p class="text-slate-400 text-sm mt-2">Secure M-Pesa Instant Checkout</p>
-        </div>
+<body>
+  <div class="page-wrap">
 
-        <form id="paymentForm" class="space-y-5">
-            <div>
-                <label for="phone" class="block text-sm font-medium text-slate-300 mb-1">M-Pesa Phone Number</label>
-                <input type="tel" id="phone" name="phone" required placeholder="0712345678 or 254..." 
-                    class="w-full bg-slate-950 border border-slate-600 rounded-lg px-4 py-3 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition">
-                <span id="phoneHelp" class="text-xs text-slate-500 mt-1 block">Supports 07..., 01..., or +254... formats</span>
-            </div>
-
-            <div>
-                <label for="amount" class="block text-sm font-medium text-slate-300 mb-1">Amount (KES)</label>
-                <input type="number" id="amount" name="amount" min="1" required placeholder="100" 
-                    class="w-full bg-slate-950 border border-slate-600 rounded-lg px-4 py-3 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition">
-            </div>
-
-            <button type="submit" id="submitBtn" 
-                class="w-full bg-emerald-500 hover:bg-emerald-600 active:scale-[0.99] text-slate-950 font-bold py-3.5 rounded-lg transition duration-150 flex items-center justify-center space-x-2 cursor-pointer shadow-lg shadow-emerald-500/20">
-                <span id="btnText">Pay via M-Pesa</span>
-                <div id="btnSpinner" class="spinner hidden"></div>
-            </button>
-        </form>
-
-        <div id="statusArea" class="hidden rounded-lg p-4 text-sm font-medium border"></div>
+    <!-- Brand header -->
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2L3 7v10l9 5 9-5V7L12 2z" fill="#0a2e1a" stroke="#0a2e1a" stroke-width="0.5"/>
+          <path d="M12 2L3 7l9 5 9-5-9-5z" fill="#164d2e"/>
+          <circle cx="12" cy="12" r="3" fill="#d4a017"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <div class="name">Geopram</div>
+        <div class="tagline">Geospatial Solutions</div>
+      </div>
     </div>
 
-    <script>
-        // Phone Number Formatter Utility Function
-        function formatKenyanNumber(phone) {
-            let cleaned = phone.replace(/\D/g, ''); // Remove non-numeric characters
-            
-            if (cleaned.startsWith('254') && cleaned.length === 12) {
-                return cleaned;
-            }
-            if (cleaned.startsWith('0') && cleaned.length === 10) {
-                return '254' + cleaned.substring(1);
-            }
-            if ((cleaned.startsWith('7') || cleaned.startsWith('1')) && cleaned.length === 9) {
-                return '254' + cleaned;
-            }
-            return null; // Return null if invalid format
-        }
+    <!-- Checkout card -->
+    <div class="card" role="main">
 
-        const form = document.getElementById('paymentForm');
-        const submitBtn = document.getElementById('submitBtn');
-        const btnText = document.getElementById('btnText');
-        const btnSpinner = document.getElementById('btnSpinner');
-        const statusArea = document.getElementById('statusArea');
+      <!-- Card header -->
+      <div class="card-header">
+        <div class="card-header-badge">
+          <span class="dot-live" aria-hidden="true"></span>
+          <span>Secure Checkout</span>
+        </div>
+        <h1>Pay via M-Pesa</h1>
+        <p>Enter your Safaricom number and amount below. A PIN prompt will be sent to your phone.</p>
+      </div>
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            // Reset styles and UI components
-            statusArea.classList.add('hidden');
-            statusArea.className = "rounded-lg p-4 text-sm font-medium border"; 
-            
-            const rawPhone = document.getElementById('phone').value.trim();
-            const amount = document.getElementById('amount').value.trim();
-            
-            const formattedPhone = formatKenyanNumber(rawPhone);
-            
-            if (!formattedPhone) {
-                showStatus("Invalid phone number format. Please check and try again.", "error");
-                return;
-            }
+      <!-- Card body -->
+      <div class="card-body">
 
-            // Set dynamic Loading UI state
-            submitBtn.disabled = true;
-            btnText.textContent = "Processing Prompt...";
-            btnSpinner.classList.remove('hidden');
+        <div class="field">
+          <label for="phone">M-Pesa Phone Number</label>
+          <div class="input-wrap">
+            <span class="input-icon" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+                <line x1="12" y1="18" x2="12.01" y2="18"/>
+              </svg>
+            </span>
+            <input
+              type="tel"
+              id="phone"
+              name="phone"
+              placeholder="07XX XXX XXX"
+              autocomplete="tel"
+              inputmode="numeric"
+              maxlength="13"
+              aria-describedby="phone-hint phone-err"
+            />
+          </div>
+          <div class="field-hint" id="phone-hint">Accepts 07…, 01…, or +254… formats</div>
+          <div class="field-err" id="phone-err" role="alert"></div>
+        </div>
 
-            try {
-                const response = await fetch('/api/stk_push', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone: formattedPhone, amount: amount })
-                });
+        <div class="field">
+          <label for="amount">Amount (KES)</label>
+          <div class="input-wrap">
+            <span class="input-icon" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="1" x2="12" y2="23"/>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              </svg>
+            </span>
+            <input
+              type="number"
+              id="amount"
+              name="amount"
+              placeholder="e.g. 500"
+              min="1"
+              max="300000"
+              inputmode="numeric"
+              aria-describedby="amount-hint amount-err"
+            />
+          </div>
+          <div class="field-hint" id="amount-hint">Minimum KES 1 — Maximum KES 300,000</div>
+          <div class="field-err" id="amount-err" role="alert"></div>
+        </div>
 
-                const data = await response.json();
+        <div class="divider">Review your details above</div>
 
-                if (response.ok) {
-                    showStatus(`STK Push initiated successfully! Please check your handset to enter your M-Pesa PIN.`, "success");
-                    form.reset();
-                } else {
-                    showStatus(`Error: ${data.error || 'Failed to dispatch payment trigger.'}`, "error");
-                }
-            } catch (err) {
-                showStatus(`Network Connection Error: ${err.message}`, "error");
-            } finally {
-                // Revert Loading UI state
-                submitBtn.disabled = false;
-                btnText.textContent = "Pay via M-Pesa";
-                btnSpinner.classList.add('hidden');
-            }
+        <button class="btn-pay" id="pay-btn" type="button" aria-label="Pay via M-Pesa">
+          <span class="btn-icon" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+              <line x1="1" y1="10" x2="23" y2="10"/>
+            </svg>
+          </span>
+          <span class="btn-spinner" aria-hidden="true">
+            <span class="spinner"></span>
+          </span>
+          <span id="btn-label">Pay via M-Pesa</span>
+        </button>
+
+        <!-- Status message -->
+        <div id="status-box" role="status" aria-live="polite">
+          <span class="status-icon" id="status-icon" aria-hidden="true"></span>
+          <span id="status-text"></span>
+        </div>
+
+        <!-- M-Pesa branding -->
+        <div class="mpesa-brand">
+          <span>Powered by</span>
+          <div class="mpesa-logo">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" fill="#c0392b"/>
+              <text x="12" y="16" text-anchor="middle" font-size="10" font-weight="bold" fill="white" font-family="Arial">M</text>
+            </svg>
+            <span><span class="m">M</span>-<span class="pesa">Pesa</span></span>
+          </div>
+        </div>
+
+      </div><!-- /.card-body -->
+    </div><!-- /.card -->
+
+    <!-- Security note -->
+    <div class="secure-strip" aria-label="Secured by Safaricom Daraja API">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+      <span>256-bit TLS · Safaricom Daraja API · No card data stored</span>
+    </div>
+
+  </div><!-- /.page-wrap -->
+
+  <script>
+    // ── Utility: format Kenyan phone number to 2547XXXXXXXX ────
+    function formatKenyanPhone(raw) {
+      const digits = raw.replace(/\D/g, '');
+
+      // Already in international format: 2547XXXXXXXX or 2541XXXXXXXX
+      if (/^254[71]\d{8}$/.test(digits)) return digits;
+
+      // +254XXXXXXXXX → strip leading +
+      if (/^254\d{9}$/.test(digits)) {
+        const normalized = digits.slice(0, 3) + digits.slice(3);
+        if (/^254[71]\d{8}$/.test(normalized)) return normalized;
+      }
+
+      // 07XXXXXXXX or 01XXXXXXXX → prepend 254, drop leading 0
+      if (/^0[71]\d{8}$/.test(digits)) return '254' + digits.slice(1);
+
+      // 7XXXXXXXX or 1XXXXXXXX (9 digits, no leading 0)
+      if (/^[71]\d{8}$/.test(digits)) return '254' + digits;
+
+      return null; // unrecognised format
+    }
+
+    // ── DOM refs ───────────────────────────────────────────────
+    const phoneInput  = document.getElementById('phone');
+    const amountInput = document.getElementById('amount');
+    const phoneErr    = document.getElementById('phone-err');
+    const amountErr   = document.getElementById('amount-err');
+    const payBtn      = document.getElementById('pay-btn');
+    const btnLabel    = document.getElementById('btn-label');
+    const statusBox   = document.getElementById('status-box');
+    const statusText  = document.getElementById('status-text');
+    const statusIcon  = document.getElementById('status-icon');
+
+    // ── Helpers ────────────────────────────────────────────────
+    function showFieldError(input, errEl, msg) {
+      input.classList.add('error');
+      errEl.textContent = msg;
+      errEl.style.display = 'block';
+    }
+
+    function clearFieldError(input, errEl) {
+      input.classList.remove('error');
+      errEl.style.display = 'none';
+    }
+
+    function setStatus(type, message) {
+      const icons = {
+        success: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`,
+        error:   `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`,
+        info:    `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
+      };
+      statusIcon.innerHTML = icons[type] || '';
+      statusText.textContent = message;
+      statusBox.className = `show ${type}`;
+    }
+
+    function clearStatus() {
+      statusBox.className = '';
+      statusText.textContent = '';
+    }
+
+    function setLoading(isLoading) {
+      payBtn.disabled = isLoading;
+      payBtn.classList.toggle('loading', isLoading);
+      btnLabel.textContent = isLoading ? 'Sending STK Push…' : 'Pay via M-Pesa';
+    }
+
+    // Live validation on blur
+    phoneInput.addEventListener('blur', () => {
+      const formatted = formatKenyanPhone(phoneInput.value.trim());
+      if (!phoneInput.value.trim()) {
+        clearFieldError(phoneInput, phoneErr);
+      } else if (!formatted) {
+        showFieldError(phoneInput, phoneErr, 'Enter a valid Safaricom number (07XX, 01XX, or +254XX).');
+      } else {
+        clearFieldError(phoneInput, phoneErr);
+      }
+    });
+
+    amountInput.addEventListener('blur', () => {
+      const val = parseInt(amountInput.value, 10);
+      if (!amountInput.value.trim()) {
+        clearFieldError(amountInput, amountErr);
+      } else if (isNaN(val) || val < 1) {
+        showFieldError(amountInput, amountErr, 'Minimum amount is KES 1.');
+      } else if (val > 300000) {
+        showFieldError(amountInput, amountErr, 'Maximum M-Pesa transaction is KES 300,000.');
+      } else {
+        clearFieldError(amountInput, amountErr);
+      }
+    });
+
+    // ── Form submit ────────────────────────────────────────────
+    payBtn.addEventListener('click', async () => {
+      clearStatus();
+
+      // Validate phone
+      const rawPhone = phoneInput.value.trim();
+      const phone    = formatKenyanPhone(rawPhone);
+
+      if (!rawPhone) {
+        showFieldError(phoneInput, phoneErr, 'Phone number is required.');
+        phoneInput.focus();
+        return;
+      }
+      if (!phone) {
+        showFieldError(phoneInput, phoneErr, 'Enter a valid Safaricom number (07XX, 01XX, or +254XX).');
+        phoneInput.focus();
+        return;
+      }
+      clearFieldError(phoneInput, phoneErr);
+
+      // Validate amount
+      const rawAmount = amountInput.value.trim();
+      const amount    = parseInt(rawAmount, 10);
+
+      if (!rawAmount) {
+        showFieldError(amountInput, amountErr, 'Amount is required.');
+        amountInput.focus();
+        return;
+      }
+      if (isNaN(amount) || amount < 1) {
+        showFieldError(amountInput, amountErr, 'Minimum amount is KES 1.');
+        amountInput.focus();
+        return;
+      }
+      if (amount > 300000) {
+        showFieldError(amountInput, amountErr, 'Maximum M-Pesa transaction is KES 300,000.');
+        amountInput.focus();
+        return;
+      }
+      clearFieldError(amountInput, amountErr);
+
+      // Dispatch payment
+      setLoading(true);
+      setStatus('info', `Sending STK Push to +${phone}… Check your phone for the M-Pesa PIN prompt.`);
+
+      try {
+        const res  = await fetch('/api/stk_push', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ phone, amount }),
         });
 
-        function showStatus(message, type) {
-            statusArea.classList.remove('hidden');
-            statusArea.textContent = message;
-            if (type === 'success') {
-                statusArea.classList.add('bg-emerald-950/50', 'text-emerald-400', 'border-emerald-800');
-            } else {
-                statusArea.classList.add('bg-rose-950/50', 'text-rose-400', 'border-rose-800');
-            }
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          setStatus(
+            'success',
+            `✅ STK Push sent! Enter your M-Pesa PIN on your phone to complete the payment of KES ${amount.toLocaleString()}.`
+          );
+          phoneInput.value  = '';
+          amountInput.value = '';
+        } else {
+          setStatus('error', data.message || 'Payment request failed. Please try again.');
         }
-    </script>
+      } catch (err) {
+        console.error('[checkout] fetch error:', err);
+        setStatus('error', 'Network error — check your connection and try again.');
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    // Allow Enter key on inputs
+    [phoneInput, amountInput].forEach((el) =>
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') payBtn.click();
+      })
+    );
+  </script>
 </body>
 </html>

@@ -1,0 +1,17 @@
+{
+  "name": "geopram-mpesa",
+  "version": "1.0.0",
+  "description": "Geopram Shop — Safaricom M-Pesa STK Push checkout system on Vercel",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "mongodb": "^6.5.0"
+  },
+  "engines": {
+    "node": ">=18.x"
+  },
+  "license": "MIT"
+}
