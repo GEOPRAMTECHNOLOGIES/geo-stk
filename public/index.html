@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geopram Checkout</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid #fff;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center p-4 font-sans">
+
+    <div class="w-full max-w-md bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 p-8 space-y-6">
+        <div class="text-center">
+            <h1 class="text-3xl font-extrabold tracking-tight text-emerald-400">Geopram Shop</h1>
+            <p class="text-slate-400 text-sm mt-2">Secure M-Pesa Instant Checkout</p>
+        </div>
+
+        <form id="paymentForm" class="space-y-5">
+            <div>
+                <label for="phone" class="block text-sm font-medium text-slate-300 mb-1">M-Pesa Phone Number</label>
+                <input type="tel" id="phone" name="phone" required placeholder="0712345678 or 254..." 
+                    class="w-full bg-slate-950 border border-slate-600 rounded-lg px-4 py-3 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition">
+                <span id="phoneHelp" class="text-xs text-slate-500 mt-1 block">Supports 07..., 01..., or +254... formats</span>
+            </div>
+
+            <div>
+                <label for="amount" class="block text-sm font-medium text-slate-300 mb-1">Amount (KES)</label>
+                <input type="number" id="amount" name="amount" min="1" required placeholder="100" 
+                    class="w-full bg-slate-950 border border-slate-600 rounded-lg px-4 py-3 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition">
+            </div>
+
+            <button type="submit" id="submitBtn" 
+                class="w-full bg-emerald-500 hover:bg-emerald-600 active:scale-[0.99] text-slate-950 font-bold py-3.5 rounded-lg transition duration-150 flex items-center justify-center space-x-2 cursor-pointer shadow-lg shadow-emerald-500/20">
+                <span id="btnText">Pay via M-Pesa</span>
+                <div id="btnSpinner" class="spinner hidden"></div>
+            </button>
+        </form>
+
+        <div id="statusArea" class="hidden rounded-lg p-4 text-sm font-medium border"></div>
+    </div>
+
+    <script>
+        // Phone Number Formatter Utility Function
+        function formatKenyanNumber(phone) {
+            let cleaned = phone.replace(/\D/g, ''); // Remove non-numeric characters
+            
+            if (cleaned.startsWith('254') && cleaned.length === 12) {
+                return cleaned;
+            }
+            if (cleaned.startsWith('0') && cleaned.length === 10) {
+                return '254' + cleaned.substring(1);
+            }
+            if ((cleaned.startsWith('7') || cleaned.startsWith('1')) && cleaned.length === 9) {
+                return '254' + cleaned;
+            }
+            return null; // Return null if invalid format
+        }
+
+        const form = document.getElementById('paymentForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const btnText = document.getElementById('btnText');
+        const btnSpinner = document.getElementById('btnSpinner');
+        const statusArea = document.getElementById('statusArea');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Reset styles and UI components
+            statusArea.classList.add('hidden');
+            statusArea.className = "rounded-lg p-4 text-sm font-medium border"; 
+            
+            const rawPhone = document.getElementById('phone').value.trim();
+            const amount = document.getElementById('amount').value.trim();
+            
+            const formattedPhone = formatKenyanNumber(rawPhone);
+            
+            if (!formattedPhone) {
+                showStatus("Invalid phone number format. Please check and try again.", "error");
+                return;
+            }
+
+            // Set dynamic Loading UI state
+            submitBtn.disabled = true;
+            btnText.textContent = "Processing Prompt...";
+            btnSpinner.classList.remove('hidden');
+
+            try {
+                const response = await fetch('/api/stk_push', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone: formattedPhone, amount: amount })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showStatus(`STK Push initiated successfully! Please check your handset to enter your M-Pesa PIN.`, "success");
+                    form.reset();
+                } else {
+                    showStatus(`Error: ${data.error || 'Failed to dispatch payment trigger.'}`, "error");
+                }
+            } catch (err) {
+                showStatus(`Network Connection Error: ${err.message}`, "error");
+            } finally {
+                // Revert Loading UI state
+                submitBtn.disabled = false;
+                btnText.textContent = "Pay via M-Pesa";
+                btnSpinner.classList.add('hidden');
+            }
+        });
+
+        function showStatus(message, type) {
+            statusArea.classList.remove('hidden');
+            statusArea.textContent = message;
+            if (type === 'success') {
+                statusArea.classList.add('bg-emerald-950/50', 'text-emerald-400', 'border-emerald-800');
+            } else {
+                statusArea.classList.add('bg-rose-950/50', 'text-rose-400', 'border-rose-800');
+            }
+        }
+    </script>
+</body>
+</html>

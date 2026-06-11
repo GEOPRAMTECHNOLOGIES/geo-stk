@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "routes": [
+    {
+      "src": "/api/stk_push",
+      "methods": ["POST", "OPTIONS"],
+      "dest": "/api/stk_push.js"
+    },
+    {
+      "src": "/api/callback",
+      "methods": ["POST", "OPTIONS"],
+      "dest": "/api/callback.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/public/$1"
+    }
+  ]
+}
